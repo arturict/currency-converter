@@ -41,3 +41,13 @@ Run the command line program:
 
     $ deno run --allow-read src/cli.ts --rates exchange-rates.json --from chf --to usd --amount 1900
     2345.679012345679
+
+## Tests
+
+Run the tests:
+
+    $ deno test
+
+Report test coverage (exports an HTML report to the `codecov/` folder):
+
+    $ deno test --coverage=codecov
