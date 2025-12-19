@@ -1,0 +1,93 @@
+{
+  "scriptId": "335",
+  "url": "file:///home/artur/school/currency-converter/src/conversion.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 887,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 27,
+          "endOffset": 54,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "getRate",
+      "ranges": [
+        {
+          "startOffset": 58,
+          "endOffset": 172,
+          "count": 5
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "setRate",
+      "ranges": [
+        {
+          "startOffset": 175,
+          "endOffset": 374,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "removeRate",
+      "ranges": [
+        {
+          "startOffset": 377,
+          "endOffset": 561,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "convert",
+      "ranges": [
+        {
+          "startOffset": 564,
+          "endOffset": 800,
+          "count": 3
+        },
+        {
+          "startOffset": 724,
+          "endOffset": 759,
+          "count": 2
+        },
+        {
+          "startOffset": 759,
+          "endOffset": 796,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "toKey",
+      "ranges": [
+        {
+          "startOffset": 803,
+          "endOffset": 884,
+          "count": 26
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}
