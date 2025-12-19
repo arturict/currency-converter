@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-# Minimal system tests for the CLI (src/cli.ts)
-# Exit 0 if all tests pass, otherwise exit 1.
-
-failures=0
+failures=0 #anzahl fails
 rates_file="exchange-rates.json"
 cli_file="src/cli.ts"
 
@@ -20,7 +17,7 @@ if [ ! -f "$rates_file" ] || [ ! -f "$cli_file" ]; then
   exit 1
 fi
 
-# 1) Konversion mit einer bekannten Währung (usd -> chf)
+# 1) Konversion mit bekannten Währung (usd -> chf)
 out="$(deno run --allow-read "$cli_file" --rates "$rates_file" --from usd --to chf --amount 100 2>/dev/null)"
 status=$?
 if [ "$status" -eq 0 ] && [ "$out" = "81" ]; then
@@ -29,7 +26,7 @@ else
   bad "usd -> chf (100) expected 81, got '$out' (exit $status)"
 fi
 
-# 2) Konversion mit einer anderen bekannten Währung (eur -> chf)
+# 2) Konversion mit anderen bekannten Währung (eur -> chf)
 out="$(deno run --allow-read "$cli_file" --rates "$rates_file" --from eur --to chf --amount 100 2>/dev/null)"
 status=$?
 if [ "$status" -eq 0 ] && [ "$out" = "94" ]; then
@@ -47,7 +44,7 @@ else
   bad "chf -> usd (1900) expected 2345.679012345679, got '$out' (exit $status)"
 fi
 
-# 4) Konversion mit einer unbekannten Währung (Negativtest)
+# 4) Konversion mit unbekannten Währung (soll fehlschlagen)
 deno run --allow-read "$cli_file" --rates "$rates_file" --from usd --to zzz --amount 100 >/dev/null 2>/dev/null
 status=$?
 if [ "$status" -ne 0 ]; then
@@ -56,10 +53,10 @@ else
   bad "unknown currency usd -> zzz should fail (exit $status)"
 fi
 
-if [ "$failures" -eq 0 ]; then
+if [ "$failures" -eq 0 ]; then #wenn keine fails, ok
   echo "All CLI tests passed."
   exit 0
-else
+else # wenn fails, fehler ausgeben
   echo "$failures CLI test(s) failed." >&2
   exit 1
 fi

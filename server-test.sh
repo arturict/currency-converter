@@ -1,32 +1,12 @@
 #!/usr/bin/env bash
 
-# System tests for src/server.ts
-# Uses: bash, curl, jq
-# Exit 0 if all tests pass, otherwise exit 1.
-
-failures=0
+failures=0 #anzahl fails
 
 ok() { echo "OK:   $1"; }
 fail() { echo "FAIL: $1"; failures=$((failures + 1)); }
 
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "missing command: $1" >&2
-    exit 1
-  fi
-}
-
-require_cmd deno
-require_cmd curl
-require_cmd jq
-
-if [ ! -f "src/server.ts" ]; then
-  echo "missing src/server.ts" >&2
-  exit 1
-fi
-
 base_url="http://localhost:8000"
-auth="banker:iLikeMoney"
+auth="banker:iLikeMoney" # Mr. Crabs
 
 server_log="$(mktemp)"
 
@@ -42,7 +22,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Wait until server responds (max ~5s)
+# warten bis server startet
 ready=0
 for _ in $(seq 1 50); do
   code="$(curl -s -o /dev/null -w "%{http_code}" --max-time 1 "$base_url/rate/usd/chf" || true)"
@@ -53,15 +33,9 @@ for _ in $(seq 1 50); do
   sleep 0.1
 done
 
-if [ "$ready" -ne 1 ]; then
-  echo "server did not start" >&2
-  echo "--- server log ---" >&2
-  cat "$server_log" >&2 || true
-  exit 1
-fi
+
 
 request() {
-  # usage: request METHOD URL [AUTH]
   local method="$1" url="$2" use_auth="${3:-no}"
   local body_file
   body_file="$(mktemp)"
@@ -76,7 +50,7 @@ request() {
   rm -f "$body_file"
 }
 
-# 1) Hinterlegen eines neuen Wechselkurses
+# 1) Neuer Wechselkurs hinzufügen
 request PUT "$base_url/rate/usd/chf/0.81" auth
 if [ "$HTTP_STATUS" = "201" ]; then
   ok "PUT /rate/usd/chf/0.81 -> 201"
@@ -84,7 +58,7 @@ else
   fail "PUT expected 201, got $HTTP_STATUS (body='$HTTP_BODY')"
 fi
 
-# 2) Abrufen eines bekannten Wechselkurses
+# 2) Wechselkurs abrufen
 request GET "$base_url/rate/usd/chf"
 rate="$(printf "%s" "$HTTP_BODY" | jq -r '.rate' 2>/dev/null || true)"
 if [ "$HTTP_STATUS" = "200" ] && [ "$rate" = "0.81" ]; then
@@ -93,7 +67,7 @@ else
   fail "GET known rate expected 200 and 0.81, got $HTTP_STATUS and '$rate' (body='$HTTP_BODY')"
 fi
 
-# 3) Abrufen eines unbekannten Wechselkurses (Negativtest)
+# 3) Unbekannter Wechselkurs abrufen
 request GET "$base_url/rate/aaa/bbb"
 if [ "$HTTP_STATUS" = "404" ]; then
   ok "GET /rate/aaa/bbb -> 404"
@@ -101,7 +75,7 @@ else
   fail "GET unknown rate expected 404, got $HTTP_STATUS (body='$HTTP_BODY')"
 fi
 
-# 4) Konversion mit einer bekannten Währung
+# 4) Konversion mit bekannten Währung
 request GET "$base_url/conversion/usd/chf/100"
 result="$(printf "%s" "$HTTP_BODY" | jq -r '.result' 2>/dev/null || true)"
 if [ "$HTTP_STATUS" = "200" ] && [ "$result" = "81" ]; then
@@ -110,7 +84,7 @@ else
   fail "conversion expected 200 and 81, got $HTTP_STATUS and '$result' (body='$HTTP_BODY')"
 fi
 
-# 5) Konversion in die umgekehrte Richtung
+# 5) Umgekehrte Konversion
 request GET "$base_url/conversion/chf/usd/1900"
 result="$(printf "%s" "$HTTP_BODY" | jq -r '.result' 2>/dev/null || true)"
 if [ "$HTTP_STATUS" = "200" ] && [ "$result" = "2345.679012345679" ]; then
@@ -119,7 +93,7 @@ else
   fail "reverse conversion expected 200 and 2345.679012345679, got $HTTP_STATUS and '$result' (body='$HTTP_BODY')"
 fi
 
-# 6) Entfernen eines Wechselkurses
+# 6) Entfernen Wechselkurses
 request DELETE "$base_url/rate/usd/chf" auth
 if [ "$HTTP_STATUS" = "204" ]; then
   ok "DELETE /rate/usd/chf -> 204"
@@ -127,7 +101,7 @@ else
   fail "DELETE expected 204, got $HTTP_STATUS (body='$HTTP_BODY')"
 fi
 
-# 7) Konversion für entfernte Währung (Negativtest)
+# 7) Konversion mit gelöschtem Wechselkurs (soll fehlschlagen)
 request GET "$base_url/conversion/usd/chf/100"
 if [ "$HTTP_STATUS" = "500" ]; then
   ok "conversion after delete fails (500)"
