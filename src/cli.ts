@@ -27,10 +27,19 @@ if (!flags.amount) {
 }
 const amount = Number.parseFloat(flags.amount);
 
+if (Number.isNaN(amount)) {
+  console.error("--amount must be a currency amount");
+  Deno.exit(1);
+}
+
 const converter = new Converter();
 for (const { fromCurrency, toCurrency, exchangeRate } of rates) {
   converter.setRate(fromCurrency, toCurrency, exchangeRate);
 }
 
 const result = converter.convert(flags.from, flags.to, amount);
+if (result === undefined) {
+  console.error(`no exchange rate for ${flags.from} -> ${flags.to}`);
+  Deno.exit(1);
+}
 console.log(result);
